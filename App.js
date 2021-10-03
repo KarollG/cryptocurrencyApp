@@ -1,6 +1,6 @@
+/* eslint-disable prettier/prettier */
 import React, {useState, useEffect} from 'react';
-import type {Node} from 'react';
-import {StyleSheet, Image, View} from 'react-native';
+import {StyleSheet, Image, View, ScrollView, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 import Header from './components/Header';
 import Form from './components/Form';
@@ -12,6 +12,7 @@ const App = () => {
   const [cryptocurrency, saveCryptocurrency] = useState('');
   const [consultAPI, saveConsultAPI] = useState(false);
   const [result, saveResult] = useState({});
+  const [charging, saveCharging] = useState(false);
 
   useEffect(() => {
     const quoteCryptocurrency = async () => {
@@ -21,38 +22,48 @@ const App = () => {
         const url = `https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${cryptocurrency}&tsyms=${coin}`;
         const result = await axios.get(url);
 
-        console.log(result.data.DISPLAY[cryptocurrency][coin]);
-        saveResult(result.data.DISPLAY[cryptocurrency][coin]);
+        //console.log(result.data.DISPLAY[cryptocurrency][coin]);
+        saveCharging(true);
 
-        saveConsultAPI(false);
+        //ocultar el spinner y mostrar el resultado
+        setTimeout(() => {
+          saveResult(result.data.DISPLAY[cryptocurrency][coin]);
+
+          saveConsultAPI(false);
+          saveCharging(false);
+        }, 3000);
       }
       //console.log('Consultar api ha cambiado');
     };
     quoteCryptocurrency();
   }, [consultAPI]);
 
+  //Mostrar el spinner o el resultado
+  const componentt = charging ? <ActivityIndicator size="large" color="#5E49E2" /> : <Quotation result={result}/> ;
   return (
     <>
-      <Header />
+      <ScrollView>
+        <Header />
 
-      <Image
-        style={styles.image}
-        source={require('./assets/img/cryptomonedas.png')}
-      />
-
-      <View style={styles.content}>
-        <Form
-          coin={coin}
-          cryptocurrency={cryptocurrency}
-          saveCoin={saveCoin}
-          saveCryptocurrency={saveCryptocurrency}
-          saveConsultAPI={saveConsultAPI}
+        <Image
+          style={styles.image}
+          source={require('./assets/img/cryptomonedas.png')}
         />
 
-        <Quotation
-          result={result}
-        />
-      </View>
+        <View style={styles.content}>
+          <Form
+            coin={coin}
+            cryptocurrency={cryptocurrency}
+            saveCoin={saveCoin}
+            saveCryptocurrency={saveCryptocurrency}
+            saveConsultAPI={saveConsultAPI}
+          />
+
+        </View>
+        <View style={{marginTop: 40}}>
+          {componentt}
+        </View>
+      </ScrollView>
     </>
   );
 };
